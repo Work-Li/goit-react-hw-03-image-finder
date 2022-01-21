@@ -1,11 +1,14 @@
 import React from "react";
 import PropTypes from 'prop-types';
+import s from './ImageGalleryItem.module.css';
 
-export default function ImageGalleryItem ({  webformatURL, largeImageURL, tags, onOpenModal }) {
+ const ImageGalleryItem = ({ id, tags, webformatURL, largeImageURL, onOpenModal }) => {
     return ( 
-        <li class="gallery-item">
-            <img src={webformatURL} alt={tags} data-source={largeImageURL} onClick={onOpenModal} />
+    
+        <li class="gallery-item" key={id} className={s.imageGalleryItem }>
+            <img src={webformatURL} alt={tags} data-source={largeImageURL} onClick={onOpenModal} className={s.imageGalleryItem__image} />
         </li>
+       
     )
 }
     
@@ -17,3 +20,5 @@ ImageGalleryItem.propTypes = {
     tags: PropTypes.string,
     onOpenModal: PropTypes.func,
 };
+
+export default ImageGalleryItem;

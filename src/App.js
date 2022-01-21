@@ -1,47 +1,97 @@
-import './App.css';
-import { Component } from 'react';
+
+import React, { Component } from 'react';
+import fetchImages from './services/api';
 import Searchbar from './components/Searchbar/Searchbar';
+import ImageGallery from './components/ImageGallery/ImageGallery';
+import Button from './components/Button/Button';
+import Spinner from './components/Loader/Loader';
+import Modal from './components/Modal/Modal'
 import toast, { Toaster } from 'react-hot-toast';
-import ImageGallery from './components/ImageGallery/ImageGallery'
-import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 
-// import PropTypes from 'prop-types';
 
-// 24192544-a81042c0a59826e332cc4d72c
-// https://pixabay.com/api/?q=cat&page=1&key=your_key&image_type=photo&orientation=horizontal&per_page=12
 
-export default class App extends Component {
+class App extends Component {
   state = {
-    images: [],
-    loading: false,
     request: '',
+    images: [],
+    page: 1,
+    status: 'idle',
+    showBtn: false,
+    showModal: false,
+    selectedImage: '',
+    
   };
   handleFormSubmit = request => {
     this.setState({ request });
   };
 
-  componentDidMount() {
-    this.setState({ loading: true });
+  componentDidUpdate(prevProps, prevState) {
+    const prevImage = prevState.request;
+    const nextImage = this.state.request;
 
-    fetch(
-      'https://pixabay.com/api/?q=cat&page=1&key=24192544-a81042c0a59826e332cc4d72c&image_type=photo&orientation=horizontal&per_page=12',
-    )
-      .then(res => res.json())
-      .then(images => this.setState({ images }))
-      .finally(() => this.setState({ loading: false }));
-    // (images => this.setState({ images }));
+    if (prevImage !== nextImage) {
+      this.setState({ status: 'pending' });
+
+      fetchImages(nextImage, 1)
+        .then(data => {
+          if (data.total === 0) {
+            toast.error(`No images for ${nextImage}`);
+            return;
+          } else {
+            this.setState({ images: data.hits, status: 'resolved', page: prevState.page + 1, showBtn: true });
+          }
+        })
+        .catch(error => toast.error('Something wrong'));
+    }
   }
+
+  toggleModal = () => {
+    this.setState(({ showModal }) => ({ showModal: !showModal }));
+  };
+
+  onOpenModal = event => {
+    this.setState({ selectedImage: event.target.dataset.source });
+    this.toggleModal();
+  };
+
+  onLoadMoreClick = e => {
+    const nextImage = this.state.request;
+    const page = this.state.page;
+
+    fetchImages(nextImage, page).then(data =>
+      this.setState(prevState => {
+        return {
+          page: prevState.page + 1,
+          images: [...prevState.images, ...data.hits],
+          status: 'resolved',
+        };
+      }),
+    );
+
+  };
 
   render() {
+    const { request, images, status, showBtn, showModal, selectedImage } = this.state;
+
     return (
-      <div className="App">
-        <Toaster toastOptions={{ duration:2000 }}/>
+      <>
+        <Toaster />
         <Searchbar onSubmit={this.handleFormSubmit} />
-        <ImageGallery searchRequest={this.state.request}/>
-        {/* {this.state.images && 
-          ({this.state.images.map(image => (key={image.id} webformatURL={image.webformatURL} tags={image.tags} largeImageURL={image.largeImageURL}))}}) */}
-        {/* {this.state.images && <div>{this.state.images.webformatURL}</div>} */}
-      </div>
-    );
+        {status === 'idle' && <p>'Please, enter request'</p>}
+        {status === 'pending' && <Spinner />}
+        {status === 'resolved' && <ImageGallery images={images} onOpenModal={this.onOpenModal} /> }
+        {showBtn && <Button onClick={this.onLoadMoreClick}/>}
+        {showModal && (
+          <Modal onClose={this.toggleModal}>
+            <img src={selectedImage} alt={request} width="800" />
+          </Modal>)}
+        {console.log(images)  }
+
+
+      </>  
+    )
   }
+
+
 }
+export default  App;

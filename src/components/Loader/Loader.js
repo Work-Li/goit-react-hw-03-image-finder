@@ -1,13 +1,21 @@
-import { BallTriangle } from  'react-loader-spinner';
+import Loader from  'react-loader-spinner';
 
 
-<BallTriangle
+const Spinner = () => {
+  return (
+    <Loader
+      type="BallTriangle"
+      color="#00BFFF"
+      height={100}
+      width={100}
+      timeout={500}
+      // position={'center'}
+      // className={s.loader}
+    />
+  );
+};
 
-    color="#00BFFF"
-    heigth="100"
-    width="100"
-    color='grey'
-    arialLabel='loading'
-  />
 
 //   color="#00BFFF" height={80} width={80} 
+
+export default Spinner;
