@@ -1,4 +1,6 @@
-import { Component } from 'react/cjs/react.production.min';
+import { Component } from 'react';
+import toast from 'react-hot-toast';
+import PropTypes from 'prop-types';
 
 export default class Searchbar extends Component {
   state = {
@@ -11,7 +13,10 @@ export default class Searchbar extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
-
+    if(this.state.request.trim() === '') {
+      toast.error('Please, enter request')
+      return;
+    }
     this.props.onSubmit(this.state.request);
     this.setState({ request: '' });
   };
@@ -40,3 +45,8 @@ export default class Searchbar extends Component {
     );
   }
 }
+
+Searchbar.propTypes = {
+  onSubmit: PropTypes.func,
+  onChange: PropTypes.func,
+};
